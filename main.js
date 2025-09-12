@@ -1,83 +1,81 @@
 import kaboom from "https://unpkg.com/kaplay@3001.0.19/dist/kaplay.mjs";
 
-kaboom({
-  background: [230, 240, 255],
-  scale: 2,
+kaplay({
+    background: [141, 183, 255],
 });
 
-// Load Bean sprite
-loadSprite("bean", "/sprites/bean.png");
+loadHappy();
+loadBean();
 
-// Movement speed
-const SPEED = 100;
-
-// Maze layout (W = wall, . = empty space, G = goal)
-const MAZE = [
-  "WWWWWWWWWW",
-  "W.......GW",
-  "W.WWW.WWWW",
-  "W.W.....WW",
-  "W.WWWWWWWW",
-  "W........W",
-  "WWWWWWWWWW",
-];
-
-// Build maze
-for (let y = 0; y < MAZE.length; y++) {
-  for (let x = 0; x < MAZE[y].length; x++) {
-    const tile = MAZE[y][x];
-    const pos = vec2(x * 16, y * 16);
-
-    if (tile === "W") {
-      add([
-        rect(16, 16),
-        pos,
+onLoad(() => {
+    // We'll create a bean with position, opacity and scale
+    const bean = add([
+        sprite("bean"),
+        pos(center()),
+        anchor("center"),
+        opacity(),
         area(),
-        color(100, 100, 150),
-        body(),
-        "wall",
-      ]);
-    }
+        scale(),
+    ]);
 
-    if (tile === "G") {
-      add([
-        rect(16, 16),
-        pos,
-        area(),
-        color(255, 200, 0),
-        "goal",
-      ]);
-    }
-  }
-}
+    // And a text to tell the user how to switch modes
+    const numberMode = add([
+        text("Press 1 or 2 to switch modes", { font: "happy", size: 25 }),
+        scale(1),
+        pos(25),
+        anchor("left"),
+        color(BLACK),
+    ]);
 
-// Add Bean
-const bean = add([
-  sprite("bean"),
-  pos(16, 16),
-  area(),
-  scale(1.2),
-  "bean",
-]);
+    // Then we'll define the light and dark colors
+    const lightColor = rgb(141, 183, 255);
+    const darkColor = rgb(74, 48, 82);
 
-// Movement
-onUpdate(() => {
-  let dir = vec2(0);
+    let backgroundColor = lightColor; // Is the variable that defines the intended background color
+    let mode = 1; // Defines what "mode" we're in
 
-  if (isKeyDown("left") || isKeyDown("a")) dir.x -= 1;
-  if (isKeyDown("right") || isKeyDown("d")) dir.x += 1;
-  if (isKeyDown("up") || isKeyDown("w")) dir.y -= 1;
-  if (isKeyDown("down") || isKeyDown("s")) dir.y += 1;
+    // Lerp takes an "initial value", an "ending value" and a number from 0 to 1
+    // This number determines wheter it will return the initial value or the ending value
+    onUpdate(() => {
+        // This makes it so the background always follows the intended background color
+        // Creating an effect similar to a tweening, but much more simple
+        // The 0.5 will determine how "fast" or how closely the initial value will follow the ending value
+        // Being 0 not follow at all and 1 being instant
+        const newColor = lerp(getBackground(), backgroundColor, 0.5);
+        setBackground(newColor);
 
-  bean.move(dir.scale(SPEED));
-});
+        if (mode == 1) {
+            backgroundColor = lightColor;
 
-// Win condition
-bean.onCollide("goal", () => {
-  add([
-    text("You found the coffee!", { size: 24 }),
-    pos(center()),
-    origin("center"),
-  ]);
-  destroy(bean);
+            // These lines make it so bean now follows the mouse position very slowly
+            // And the color of our text to turn from the current color to the dark color
+            bean.pos = lerp(bean.pos, mousePos(), 0.1);
+            bean.opacity = lerp(bean.opacity, 1, 0.5);
+            numberMode.color = lerp(numberMode.color, darkColor, 0.5);
+        }
+        else if (mode == 2) {
+            backgroundColor = darkColor;
+
+            // These lines make it so bean now follows center and makes its scale always 1
+            bean.pos = lerp(bean.pos, center(), 0.5);
+            bean.scale = lerp(bean.scale, vec2(1), 0.5);
+            numberMode.color = lerp(numberMode.color, lightColor, 0.5);
+
+            // When bean is being hovered, now its opacity will follow 1, highlighting it on hover
+            if (bean.isHovering()) {
+                bean.opacity = lerp(bean.opacity, 1, 0.1);
+                // If we press click, its scale will go to 2, and since it's following a scale of 1, it wil go back to that
+                if (isMousePressed("left")) {
+                    bean.scale = vec2(2);
+                }
+            }
+            // When bean is not being followed, its opacity follows 0.1 very slowly
+            else {
+                bean.opacity = lerp(bean.opacity, 0.1, 0.1);
+            }
+        }
+
+        if (isKeyPressed("1")) mode = 1;
+        else if (isKeyPressed("2")) mode = 2;
+    });
 });
