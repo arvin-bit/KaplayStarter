@@ -1,89 +1,83 @@
 import kaboom from "https://unpkg.com/kaplay@3001.0.19/dist/kaplay.mjs";
 
 kaboom({
-  background: [255, 240, 220],
+  background: [230, 240, 255],
   scale: 2,
 });
 
+// Load Bean sprite
 loadSprite("bean", "/sprites/bean.png");
-loadSprite("toast", "/sprites/toast.png");
-loadSprite("coffee", "/sprites/coffee.png");
 
-let score = 0;
+// Movement speed
+const SPEED = 100;
 
-const scoreLabel = add([
-  text("☕ 0", { size: 16 }),
-  pos(12, 12),
-  layer("ui"),
-]);
-
-const bean = add([
-  sprite("bean"),
-  pos(40, 0),
-  area(),
-  body(),
-  scale(1.2),
-]);
-
-add([
-  sprite("toast"),
-  pos(0, height() - 24),
-  area(),
-  solid(),
-  scale(2),
-]);
-
-const platforms = [
-  vec2(80, 100),
-  vec2(160, 70),
-  vec2(240, 120),
+// Maze layout (W = wall, . = empty space, G = goal)
+const MAZE = [
+  "WWWWWWWWWW",
+  "W.......GW",
+  "W.WWW.WWWW",
+  "W.W.....WW",
+  "W.WWWWWWWW",
+  "W........W",
+  "WWWWWWWWWW",
 ];
 
-for (const p of platforms) {
-  add([
-    sprite("toast"),
-    pos(p),
-    area(),
-    solid(),
-    scale(1.5),
-  ]);
+// Build maze
+for (let y = 0; y < MAZE.length; y++) {
+  for (let x = 0; x < MAZE[y].length; x++) {
+    const tile = MAZE[y][x];
+    const pos = vec2(x * 16, y * 16);
+
+    if (tile === "W") {
+      add([
+        rect(16, 16),
+        pos,
+        area(),
+        color(100, 100, 150),
+        solid(),
+        "wall",
+      ]);
+    }
+
+    if (tile === "G") {
+      add([
+        rect(16, 16),
+        pos,
+        area(),
+        color(255, 200, 0),
+        "goal",
+      ]);
+    }
+  }
 }
 
-function spawnCoffee(pos) {
+// Add Bean
+const bean = add([
+  sprite("bean"),
+  pos(16, 16),
+  area(),
+  scale(1.2),
+  "bean",
+]);
+
+// Movement
+onUpdate(() => {
+  let dir = vec2(0);
+
+  if (isKeyDown("left") || isKeyDown("a")) dir.x -= 1;
+  if (isKeyDown("right") || isKeyDown("d")) dir.x += 1;
+  if (isKeyDown("up") || isKeyDown("w")) dir.y -= 1;
+  if (isKeyDown("down") || isKeyDown("s")) dir.y += 1;
+
+  bean.move(dir.scale(SPEED));
+});
+
+// Win condition
+bean.onCollide("goal", () => {
   add([
-    sprite("coffee"),
-    pos,
-    area(),
-    "coffee",
+    text("You found the coffee!", { size: 24 }),
+    pos(center()),
+    origin("center"),
   ]);
-}
-
-spawnCoffee(vec2(160, 40));
-spawnCoffee(vec2(240, 40));
-
-onKeyPress("space", () => {
-  if (bean.isGrounded()) {
-    bean.jump(480);
-  }
+  destroy(bean);
 });
-
-onKeyDown("left", () => bean.move(-120, 0));
-onKeyDown("right", () => bean.move(120, 0));
-
-bean.onCollide("coffee", (c) => {
-  destroy(c);
-  score += 1;
-  scoreLabel.text = "☕ " + score;
-});
-
-bean.onUpdate(() => {
-  if (bean.pos.y > height()) {
-    add([
-      text("Bean fell asleep...", { size: 24 }),
-      pos(center()),
-      origin("center"),
-    ]);
-    destroy(bean);
-  }
-});
-
