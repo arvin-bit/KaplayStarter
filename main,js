@@ -1,4 +1,4 @@
-import kaboom from "https://unpkg.com/kaplay/dist/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaplay@3001.0.19/dist/kaplay.mjs";
 
 kaboom({
   background: [255, 240, 220],
@@ -86,3 +86,4 @@ bean.onUpdate(() => {
     destroy(bean);
   }
 });
+
