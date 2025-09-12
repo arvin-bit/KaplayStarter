@@ -34,7 +34,7 @@ for (let y = 0; y < MAZE.length; y++) {
         pos,
         area(),
         color(100, 100, 150),
-        solid(),
+        body(),
         "wall",
       ]);
     }
