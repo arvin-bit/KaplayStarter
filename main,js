@@ -1,18 +1,88 @@
 import kaboom from "https://unpkg.com/kaplay/dist/kaboom.mjs";
 
-kaboom();
+kaboom({
+  background: [255, 240, 220],
+  scale: 2,
+});
 
-loadSprite("player", "/sprites/player.png");
+loadSprite("bean", "/sprites/bean.png");
+loadSprite("toast", "/sprites/toast.png");
+loadSprite("coffee", "/sprites/coffee.png");
 
-const player = add([
-  sprite("player"),
-  pos(100, 100),
-  area(),
-  body()
+let score = 0;
+
+const scoreLabel = add([
+  text("☕ 0", { size: 16 }),
+  pos(12, 12),
+  layer("ui"),
 ]);
 
-keyDown("left", () => player.move(-120, 0));
-keyDown("right", () => player.move(120, 0));
-keyPress("space", () => {
-  if (player.isGrounded()) player.jump(400);
+const bean = add([
+  sprite("bean"),
+  pos(40, 0),
+  area(),
+  body(),
+  scale(1.2),
+]);
+
+add([
+  sprite("toast"),
+  pos(0, height() - 24),
+  area(),
+  solid(),
+  scale(2),
+]);
+
+const platforms = [
+  vec2(80, 100),
+  vec2(160, 70),
+  vec2(240, 120),
+];
+
+for (const p of platforms) {
+  add([
+    sprite("toast"),
+    pos(p),
+    area(),
+    solid(),
+    scale(1.5),
+  ]);
+}
+
+function spawnCoffee(pos) {
+  add([
+    sprite("coffee"),
+    pos,
+    area(),
+    "coffee",
+  ]);
+}
+
+spawnCoffee(vec2(160, 40));
+spawnCoffee(vec2(240, 40));
+
+onKeyPress("space", () => {
+  if (bean.isGrounded()) {
+    bean.jump(480);
+  }
+});
+
+onKeyDown("left", () => bean.move(-120, 0));
+onKeyDown("right", () => bean.move(120, 0));
+
+bean.onCollide("coffee", (c) => {
+  destroy(c);
+  score += 1;
+  scoreLabel.text = "☕ " + score;
+});
+
+bean.onUpdate(() => {
+  if (bean.pos.y > height()) {
+    add([
+      text("Bean fell asleep...", { size: 24 }),
+      pos(center()),
+      origin("center"),
+    ]);
+    destroy(bean);
+  }
 });
