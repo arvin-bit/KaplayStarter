@@ -13,7 +13,7 @@
 - Byt ut `player.png` med din egen sprite
 - Lägg till plattformar, poäng, fiender eller nivåer
 - Skriv ny kod i `main.js` och se ändringarna direkt
-- Man kan göra en som man kan spela tillsammans! Du kan använda [Denna länk](https://github.com/arvin-bit/MultiplayerKaplay/)
+- Man kan göra en som man kan spela tillsammans! Du kan använda [denna länk](https://github.com/arvin-bit/MultiplayerKaplay/).
 
 ---
 
