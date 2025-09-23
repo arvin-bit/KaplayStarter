@@ -28,7 +28,7 @@ Click below to create your own live version:
 
 ---
 
-[Dokumentationen]([https://kaplayjs.com/docs/guides/])
+[Dokumentationen](https://kaplayjs.com/docs/guides/)
 
 ## 📄 Licens
 
